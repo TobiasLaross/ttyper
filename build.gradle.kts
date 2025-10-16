@@ -4,17 +4,7 @@ plugins {
     kotlin("plugin.serialization") version "2.2.20"
 }
 
-application {
-    mainClass = "org.example.MainKt"
-}
-
-tasks.register<JavaExec>("runjar") {
-    dependsOn("uberJar")
-    classpath = files("build/libs/ttyper.jar")
-    jvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
-}
-
-group = "org.example"
+group = "se.antonohlin"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -22,11 +12,6 @@ repositories {
 }
 
 dependencies {
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
-    implementation("com.google.code.gson:gson:2.13.2")
     implementation("org.jline:jline:3.30.0")
     implementation("org.jline:jline-terminal-ffm:3.30.0")
     implementation("org.jline:jline-terminal-jna:3.30.0")
