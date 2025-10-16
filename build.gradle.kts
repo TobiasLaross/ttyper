@@ -12,11 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jline:jline:3.30.0")
-    implementation("org.jline:jline-terminal-ffm:3.30.0")
-    implementation("org.jline:jline-terminal-jna:3.30.0")
-    implementation("org.jline:jline-terminal-jni:3.30.0")
-    implementation("org.jline:jline-terminal-jansi:3.30.0")
+    implementation("com.googlecode.lanterna:lanterna:3.1.2")
     testImplementation(kotlin("test"))
 }
 
@@ -24,14 +20,14 @@ tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(24)
+    jvmToolchain(17)
 }
 
 tasks.register<Jar>("uberJar") {
     archiveFileName = "ttyper.jar"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
-        attributes["Main-Class"] = "org.example.MainKt"
+        attributes["Main-Class"] = "MainKt"
     }
     from(sourceSets.main.get().output)
 
