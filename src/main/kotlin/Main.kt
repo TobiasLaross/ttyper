@@ -1,29 +1,43 @@
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.File
+import kotlin.math.roundToInt
 
 fun main() {
     val terminal = DefaultTerminalFactory().createTerminal()
-    val dictionary = readDictionary()
+    val numberOfWordsToType = 20
+    val dictionary = readDictionary(numberOfWordsToType)
     val wordsToType = dictionary.joinToString(separator = " ").toCharArray()
+    var timerHasBeenStarted = false
+    var startTime: Long = 0
+
     println(wordsToType)
     for (char in wordsToType) {
         var correctKeyPressed = false
         while (!correctKeyPressed) {
             val key = terminal.readInput()
+            if (!timerHasBeenStarted) {
+                startTime = System.currentTimeMillis()
+                timerHasBeenStarted = true
+            }
             if (key.character == char) {
                 print(key.character)
                 correctKeyPressed = true
             }
         }
     }
+    val endTime = System.currentTimeMillis()
+    val elapsedTimeInSeconds = (endTime - startTime) / 1000
+    val wpm = (numberOfWordsToType.toDouble() / elapsedTimeInSeconds.toDouble()) * 60
+    println()
+    println("$numberOfWordsToType words typed in $elapsedTimeInSeconds seconds")
+    println("WPM: ${wpm.roundToInt()}")
 }
 
-fun readDictionary(): List<String> {
+fun readDictionary(numberOfWordsToType: Int): List<String> {
     val input = File("src/main/kotlin/dictionary")
     val dictionary = input.readLines()
-    val numberOfWordsToPick = 30
     val words = mutableListOf<String>()
-    repeat(numberOfWordsToPick) {
+    repeat(numberOfWordsToType) {
         words.add(dictionary.random().lowercase())
     }
     return words
