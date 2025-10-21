@@ -1,3 +1,5 @@
+import com.googlecode.lanterna.TextColor
+import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import java.io.File
 import kotlin.math.roundToInt
@@ -9,21 +11,29 @@ fun main() {
     val wordsToType = dictionary.joinToString(separator = " ").toCharArray()
     var timerHasBeenStarted = false
     var startTime: Long = 0
-
-    println(wordsToType)
+    terminal.clearScreen()
+    val initialCursorPosition = terminal.cursorPosition
+    print(wordsToType)
+    terminal.cursorPosition = initialCursorPosition
     for (char in wordsToType) {
-        var correctKeyPressed = false
-        while (!correctKeyPressed) {
+        do {
             val key = terminal.readInput()
             if (!timerHasBeenStarted) {
                 startTime = System.currentTimeMillis()
                 timerHasBeenStarted = true
             }
-            if (key.character == char) {
-                print(key.character)
-                correctKeyPressed = true
+            if (key.keyType != KeyType.Backspace) {
+                if (key.character == char) {
+                    terminal.setForegroundColor(TextColor.RGB(0, 180, 0))
+                    print(key.character)
+                    terminal.resetColorAndSGR()
+                } else {
+                    terminal.setForegroundColor(TextColor.RGB(200, 0, 0))
+                    print(char)
+                    terminal.resetColorAndSGR()
+                }
             }
-        }
+        } while (key.keyType == KeyType.Backspace)
     }
     val endTime = System.currentTimeMillis()
     val elapsedTimeInSeconds = (endTime - startTime) / 1000
