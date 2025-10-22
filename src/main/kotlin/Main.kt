@@ -12,9 +12,20 @@ fun main() {
     var timerHasBeenStarted = false
     var startTime: Long = 0
     terminal.clearScreen()
+    terminal.cursorPosition =
+        terminal.cursorPosition.withRow(terminal.terminalSize.rows / 2).withColumn(terminal.terminalSize.columns / 5)
     val initialCursorPosition = terminal.cursorPosition
-    print(wordsToType)
+    // todo: separate each lines into separate array to track cursor movement when typing
+    for (word in dictionary) {
+        val wordPlusSpace = "$word "
+        if (terminal.cursorPosition.column + wordPlusSpace.length > (terminal.terminalSize.columns / 5) * 4) {
+            terminal.cursorPosition = terminal.cursorPosition.withRow(initialCursorPosition.row + 1)
+                .withColumn(initialCursorPosition.column)
+        }
+        print(wordPlusSpace)
+    }
     terminal.cursorPosition = initialCursorPosition
+    // todo: figure out something better here
     for (char in wordsToType) {
         do {
             val key = terminal.readInput()
