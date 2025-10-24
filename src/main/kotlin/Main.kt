@@ -1,9 +1,11 @@
+import com.googlecode.lanterna.TerminalPosition
 import com.googlecode.lanterna.TextColor
 import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import com.googlecode.lanterna.terminal.Terminal
 import java.io.File
 import kotlin.math.roundToInt
+import java.util.ArrayDeque
 
 fun main() {
     val terminal = DefaultTerminalFactory().createTerminal()
@@ -23,10 +25,11 @@ fun main() {
         .withColumn((terminal.terminalSize.columns / 2) - printableWidth / 2)
 
     val initialCursorPosition = terminal.cursorPosition
-
+    val lineBreakIndexStack = ArrayDeque<TerminalPosition>()
     for (word in dictionary) {
         val wordPlusSpace = "$word "
         if (terminal.cursorPosition.column + wordPlusSpace.length > initialCursorPosition.column + printableWidth) {
+            lineBreakIndexStack.addLast(terminal.cursorPosition)
             terminal.lineBreak(initialCursorPosition.column)
         }
         print(wordPlusSpace)
@@ -48,6 +51,10 @@ fun main() {
                 terminal.setForegroundColor(TextColor.RGB(200, 0, 0))
                 print(wordsToType[i])
                 terminal.resetColorAndSGR()
+            }
+            if (terminal.cursorPosition == lineBreakIndexStack.firstOrNull()) {
+                terminal.lineBreak(initialCursorPosition.column)
+                lineBreakIndexStack.removeFirst()
             }
             i++
         } else {
