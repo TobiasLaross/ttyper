@@ -60,9 +60,7 @@ fun main() {
         } else {
             if (i > 0) {
                 i--
-                terminal.cursorPosition = terminal.cursorPosition.withColumn(terminal.cursorPosition.column - 1)
-                print(wordsToType[i])
-                terminal.cursorPosition = terminal.cursorPosition.withColumn(terminal.cursorPosition.column - 1)
+                print("\b${wordsToType[i]}\b")
             }
         }
     }
