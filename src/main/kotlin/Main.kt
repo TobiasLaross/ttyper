@@ -5,7 +5,6 @@ import com.googlecode.lanterna.input.KeyType
 import com.googlecode.lanterna.screen.Screen
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
-import com.googlecode.lanterna.terminal.Terminal
 import java.io.File
 import kotlin.math.roundToInt
 
@@ -17,7 +16,7 @@ fun main() {
     val numberOfWordsToType = 20
     val green = TextColor.RGB(100, 200, 100)
     val red = TextColor.RGB(250, 90, 90)
-    val white = TextColor.RGB(0, 0, 0)
+    val white = TextColor.RGB(255, 255, 255)
     val wordsFromFile = readDictionary(numberOfWordsToType).joinToString(separator = " ").toCharArray()
     var timerHasBeenStarted = false
     var startTime: Long = 0
@@ -33,12 +32,11 @@ fun main() {
     screen.drawWords(lines, startPosition.first, startPosition.second)
     var letter = 0
     var line = 0
-    var cursorPosition = startPosition
-    screen.setCursorPosition(cursorPosition.first, cursorPosition.second)
+    var cursorPosition = screen.setCursorPosition(startPosition.first, startPosition.second)
     screen.refresh()
     while (line < lines.size) {
         while (letter < lines[line].size) {
-            val key = terminal.readInput()
+            val key = screen.readInput()
             if (!timerHasBeenStarted) {
                 startTime = System.currentTimeMillis()
                 timerHasBeenStarted = true
@@ -50,12 +48,12 @@ fun main() {
                     errorCount++
                     screen.drawCharacter(lines[line][letter], cursorPosition, red)
                 }
-                cursorPosition = cursorPosition.copy(first = cursorPosition.first + 1)
-                screen.setCursorPosition(cursorPosition.first, cursorPosition.second)
+                cursorPosition = screen.setCursorPosition(cursorPosition.first + 1, cursorPosition.second)
                 if (letter + 1 == lines[line].size) {
-                    //terminal.lineBreak(initialCursorPosition.column)
+                    cursorPosition = screen.setCursorPosition(startPosition.first, cursorPosition.second + 1)
                     letter = 0
                     line++
+                    screen.refresh()
                     break
                 } else {
                     letter++
@@ -63,12 +61,16 @@ fun main() {
             } else {
                 if (letter > 0) {
                     letter--
-                    print("\b${lines[line][letter]}\b")
+                    cursorPosition = screen.setCursorPosition(cursorPosition.first - 1, cursorPosition.second)
+                    screen.drawCharacter(lines[line][letter], cursorPosition, white)
                 } else if (line > 0) {
                     line--
                     letter = lines[line].size - 1
-                    //terminal.cursorUp(initialCursorPosition.column + lines[line].size)
-                    print("\b${lines[line][letter]}\b")
+                    cursorPosition = screen.setCursorPosition(
+                        startPosition.first + lines[line].size - 1,
+                        cursorPosition.second - 1
+                    )
+                    screen.drawCharacter(lines[line][letter], cursorPosition, white)
                 }
             }
             screen.refresh()
@@ -81,27 +83,19 @@ fun main() {
     val rawAccuracy = ((totalCharacters - errorCount).toDouble() / totalCharacters.toDouble() * 100)
     val accuracy = rawAccuracy.coerceIn(0.0, 100.0).roundToInt()
 
+    terminal.resetColorAndSGR()
     println()
     println("$numberOfWordsToType words typed in $elapsedTimeInSeconds seconds")
     println("WPM: ${wpm.roundToInt()}")
     println("Accuracy: $accuracy%")
+    println("Press any key to quit")
+    screen.readInput()
     screen.stopScreen()
 }
 
-fun Terminal.lineBreak(initialColumn: Int) {
-    this.cursorPosition = this.cursorPosition
-        .withRow(this.cursorPosition.row + 1)
-        .withColumn(initialColumn)
-}
-
-fun Terminal.cursorUp(columnEnd: Int) {
-    this.cursorPosition = this.cursorPosition
-        .withRow(this.cursorPosition.row - 1)
-        .withColumn(columnEnd)
-}
-
-fun Screen.setCursorPosition(column: Int, row: Int) {
-   this.cursorPosition = TerminalPosition(column, row)
+fun Screen.setCursorPosition(column: Int, row: Int): Pair<Int, Int> {
+    this.cursorPosition = TerminalPosition(column, row)
+    return column to row
 }
 
 fun Screen.drawWords(words: List<List<Char>>, colPos: Int, rowPos: Int) {
@@ -111,7 +105,6 @@ fun Screen.drawWords(words: List<List<Char>>, colPos: Int, rowPos: Int) {
         text.putString(colPos, row, it.joinToString(separator = ""))
         row++
     }
-   // this.refresh()
 }
 
 fun Screen.drawCharacter(char: Char, position: Pair<Int, Int>, color: TextColor.RGB) {
@@ -119,9 +112,7 @@ fun Screen.drawCharacter(char: Char, position: Pair<Int, Int>, color: TextColor.
     tc.firstOrNull()?.let {
         this.setCharacter(position.first, position.second, it.withForegroundColor(color))
     }
-    //this.refresh()
 }
-
 
 fun readDictionary(numberOfWordsToType: Int): List<String> {
     val input = File("src/main/kotlin/dictionary")
@@ -136,10 +127,8 @@ fun readDictionary(numberOfWordsToType: Int): List<String> {
 fun splitCharArrayByWidth(input: CharArray, maxPrintableWidth: Int): List<List<Char>> {
     val result = mutableListOf<List<Char>>()
     var startIndex = 0
-
     while (startIndex < input.size) {
         var endIndex = (startIndex + maxPrintableWidth).coerceAtMost(input.size)
-
         if (endIndex < input.size) {
             var lastWhitespace = -1
             for (i in startIndex until endIndex) {
@@ -151,10 +140,8 @@ fun splitCharArrayByWidth(input: CharArray, maxPrintableWidth: Int): List<List<C
                 endIndex = lastWhitespace + 1
             }
         }
-
         result.add(input.slice(startIndex until endIndex))
         startIndex = endIndex
     }
-
     return result
 }
