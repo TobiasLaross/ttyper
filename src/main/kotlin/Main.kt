@@ -11,6 +11,7 @@ fun main() {
     val wordsFromFile = readDictionary(numberOfWordsToType).joinToString(separator = " ").toCharArray()
     var timerHasBeenStarted = false
     var startTime: Long = 0
+    var errorCount = 0
     terminal.clearScreen()
     val printableWidth = when {
         terminal.terminalSize.columns * 0.7 > 100 -> 100
@@ -43,6 +44,7 @@ fun main() {
                     print(key.character)
                     terminal.resetColorAndSGR()
                 } else {
+                    errorCount++
                     terminal.setForegroundColor(TextColor.RGB(250, 90, 90))
                     print(lines[line][letter])
                     terminal.resetColorAndSGR()
@@ -71,9 +73,14 @@ fun main() {
     val endTime = System.currentTimeMillis()
     val elapsedTimeInSeconds = (endTime - startTime) / 1000
     val wpm = (numberOfWordsToType.toDouble() / elapsedTimeInSeconds.toDouble()) * 60
+    val totalCharacters = wordsFromFile.size
+    val rawAccuracy = ((totalCharacters - errorCount).toDouble() / totalCharacters.toDouble() * 100)
+    val accuracy = rawAccuracy.coerceIn(0.0, 100.0).roundToInt()
+
     println()
     println("$numberOfWordsToType words typed in $elapsedTimeInSeconds seconds")
     println("WPM: ${wpm.roundToInt()}")
+    println("Accuracy: $accuracy%")
 }
 
 fun Terminal.lineBreak(initialColumn: Int) {
