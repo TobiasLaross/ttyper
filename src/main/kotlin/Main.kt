@@ -20,6 +20,7 @@ fun main() {
     val wordsFromFile = readDictionary(numberOfWordsToType).joinToString(separator = " ").toCharArray()
     var timerHasBeenStarted = false
     var startTime: Long = 0
+    val rawInput = StringBuilder()
     var errorCount = 0
     val printableWidth = when {
         colSize * 0.7 > 100 -> 100
@@ -42,6 +43,7 @@ fun main() {
                 timerHasBeenStarted = true
             }
             if (key.keyType != KeyType.Backspace) {
+                rawInput.append(key.character)
                 if (key.character == lines[line][letter]) {
                     screen.drawCharacter(key.character, cursorPosition, green)
                 } else {
@@ -59,6 +61,7 @@ fun main() {
                     letter++
                 }
             } else {
+                rawInput.append('·')
                 if (letter > 0) {
                     letter--
                     cursorPosition = screen.setCursorPosition(cursorPosition.first - 1, cursorPosition.second)
@@ -88,9 +91,19 @@ fun main() {
     println("$numberOfWordsToType words typed in $elapsedTimeInSeconds seconds")
     println("WPM: ${wpm.roundToInt()}")
     println("Accuracy: $accuracy%")
+    if (accuracy < 100) {
+        println()
+        println("Expected:")
+        println(wordsFromFile)
+        println()
+        println("Actual:")
+        println(rawInput.toString())
+    }
     println("Press any key to quit")
+
     screen.readInput()
     screen.stopScreen()
+
 }
 
 fun Screen.setCursorPosition(column: Int, row: Int): Pair<Int, Int> {
